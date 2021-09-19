@@ -53,6 +53,18 @@ namespace IPASorter
             foreach (IPAFile i in files)
             {
                 Console.WriteLine($"checking against {i.path} ({i.md5sum})");
+                foreach (IPAFile j in files)
+                {
+                    //Console.WriteLine($"checking {j.path} ({j.md5sum})");
+                    if(i.md5sum == j.md5sum && i.path != j.path)
+                    {
+                        Console.WriteLine("sound the alarms! these are the same file!!!!!!");
+                        files.Remove(j);
+                        File.Delete(j.path);
+                        NewFilesEnumerater();
+                        return;
+                    }
+                }
             }
         }
 
@@ -86,6 +98,26 @@ namespace IPASorter
                 {
                     var hash = md5.ComputeHash(stream);
                     return BitConverter.ToString(hash).Replace("-", "").ToLowerInvariant();
+                }
+            }
+        }
+
+        static void NewFilesEnumerater()
+        {
+            foreach (IPAFile i in files)
+            {
+                Console.WriteLine($"checking against {i.path} ({i.md5sum})");
+                foreach (IPAFile j in files)
+                {
+                    //Console.WriteLine($"checking {j.path} ({j.md5sum})");
+                    if (i.md5sum == j.md5sum && i.path != j.path)
+                    {
+                        Console.WriteLine("sound the alarms! these are the same file!!!!!!");
+                        files.Remove(j);
+                        File.Delete(j.path);
+                        NewFilesEnumerater();
+                        break;
+                    }
                 }
             }
         }
