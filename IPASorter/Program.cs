@@ -25,13 +25,17 @@ namespace IPASorter
             }
 
             // parse filepath if given
-            string argsFilePath = args.Length != 0 ? args[0] : "./";
+            string argsFilePath = args.Length != 0 ? args[0] : ".\\";
             if (!argsFilePath.EndsWith("/") || !argsFilePath.EndsWith("\\")) argsFilePath += "/";
 
             // run steps
             FileScanner(argsFilePath);
             // MD5Eliminator();  obsolete
             InfoPlistRenamer();
+            if(args.Length > 1 && args[1] == "-si")
+            {
+                SortByiOSCompatibility();
+            }
 
             Console.WriteLine("complete :)");
         }
@@ -57,29 +61,36 @@ namespace IPASorter
             Directory.CreateDirectory(".\\sortertemp");
             foreach (IPAFile i in files)
             {
+                Console.WriteLine($"fixing name of {i.fileName}");
+
                 // extract ipa
                 Directory.CreateDirectory($".\\sortertemp\\{i.fileName}");
                 ZipFile.ExtractToDirectory(i.path, $".\\sortertemp\\{i.fileName}");
-                string plistpath = $".\\sortertemp\\{i.fileName}\\Payload\\{Directory.GetDirectories($".\\sortertemp\\{i.fileName}\\Payload\\")[0].Split('\\')[Directory.GetDirectories($".\\sortertemp\\{i.fileName}\\Payload\\")[0].Split('\\').Length - 1]}\\Info.plist";
-                Dictionary<string, object> plist = (Dictionary<string, object>)Plist.readPlist(plistpath);
+                string appPath = $".\\sortertemp\\{i.fileName}\\Payload\\{Directory.GetDirectories($".\\sortertemp\\{i.fileName}\\Payload\\")[0].Split('\\')[Directory.GetDirectories($".\\sortertemp\\{i.fileName}\\Payload\\")[0].Split('\\').Length - 1]}";
+
+                // parse plist
+                Dictionary<string, object> plist = (Dictionary<string, object>)Plist.readPlist(appPath + "\\Info.plist");
                 Directory.Delete($".\\sortertemp\\{i.fileName}", true);
                 i.CFBundleIdentifier = plist["CFBundleIdentifier"].ToString();
                 i.CFBundleVersion = plist["CFBundleVersion"].ToString();
                 i.MinimumOSVersion = plist["MinimumOSVersion"].ToString();
-                File.Move(i.path, i.path.Replace(i.fileName, $"{plist["CFBundleIdentifier"]}-{plist["CFBundleVersion"]}-(iOS_{plist["MinimumOSVersion"]}).ipa"));
-                i.path = i.path.Replace(i.fileName, $"{plist["CFBundleIdentifier"]}-{plist["CFBundleVersion"]}-(iOS_{plist["MinimumOSVersion"]}).ipa");
-                i.fileName = $"{plist["CFBundleIdentifier"]}-{plist["CFBundleVersion"]}-(iOS_{plist["MinimumOSVersion"]}).ipa";
+
+                // rename file
+                string newFileName = $"{plist["CFBundleIdentifier"]}-{plist["CFBundleVersion"]}-(iOS_{plist["MinimumOSVersion"]})-{i.md5sum}.ipa";
+                File.Move(i.path, i.path.Replace(i.fileName, newFileName), true);
+                i.path = i.path.Replace(i.fileName, newFileName);
+                i.fileName = newFileName;
             }
             Directory.Delete(".\\sortertemp", true);
         }
 
-        // step 3???
-        static void Sort()
+        // optional step 3
+        static void SortByiOSCompatibility()
         {
 
         }
 
-        // keeping this around just in case
+        // othet stuff
         static string CalculateMD5(string fileName)
         {
             using (var md5 = MD5.Create())
