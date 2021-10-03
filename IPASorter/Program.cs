@@ -1,6 +1,9 @@
-﻿using System;
+﻿using PlistCS;
+
+using System;
 using System.Collections.Generic;
 using System.IO;
+using System.IO.Compression;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
@@ -16,19 +19,20 @@ namespace IPASorter
         static void Main(string[] args)
         {
             Console.WriteLine("IPASorter by KawaiiZenbo");
+            if(Directory.Exists(".\\sortertemp"))
+            {
+                Directory.Delete(".\\sortertemp", true);
+            }
+
             // parse filepath if given
             string argsFilePath = args.Length != 0 ? args[0] : "./";
             if (!argsFilePath.EndsWith("/") || !argsFilePath.EndsWith("\\")) argsFilePath += "/";
 
-            // create temp dir
-            if (Directory.Exists("%appdata%/IPASorterTemp/")) Directory.CreateDirectory("%appdata%/IPASorterTemp/");
-
             // run steps
             FileScanner(argsFilePath);
-            MD5Eliminator();
+            // MD5Eliminator();  obsolete
+            InfoPlistRenamer();
 
-            //done
-            if (Directory.Exists("%appdata%/IPASorterTemp/")) Directory.Delete("%appdata%/IPASorterTemp/");
             Console.WriteLine("complete :)");
         }
 
@@ -48,48 +52,34 @@ namespace IPASorter
         }
 
         // step 2
-        static void MD5Eliminator()
-        {
-            foreach (IPAFile i in files)
-            {
-                Console.WriteLine($"checking against {i.path} ({i.md5sum})");
-                foreach (IPAFile j in files)
-                {
-                    //Console.WriteLine($"checking {j.path} ({j.md5sum})");
-                    if(i.md5sum == j.md5sum && i.path != j.path)
-                    {
-                        Console.WriteLine("sound the alarms! these are the same file!!!!!!");
-                        files.Remove(j);
-                        File.Delete(j.path);
-                        NewFilesEnumerater();
-                        return;
-                    }
-                }
-            }
-        }
-
-        // step 3
-        static void InfoPlistEliminator()
-        {
-
-        }
-
-        // step 4
         static void InfoPlistRenamer()
         {
+            Directory.CreateDirectory(".\\sortertemp");
             foreach (IPAFile i in files)
             {
-                File.Move(i.path, i.path.Replace(i.fileName, ""));
+                // extract ipa
+                Directory.CreateDirectory($".\\sortertemp\\{i.fileName}");
+                ZipFile.ExtractToDirectory(i.path, $".\\sortertemp\\{i.fileName}");
+                string plistpath = $".\\sortertemp\\{i.fileName}\\Payload\\{Directory.GetDirectories($".\\sortertemp\\{i.fileName}\\Payload\\")[0].Split('\\')[Directory.GetDirectories($".\\sortertemp\\{i.fileName}\\Payload\\")[0].Split('\\').Length - 1]}\\Info.plist";
+                Dictionary<string, object> plist = (Dictionary<string, object>)Plist.readPlist(plistpath);
+                Directory.Delete($".\\sortertemp\\{i.fileName}", true);
+                i.CFBundleIdentifier = plist["CFBundleIdentifier"].ToString();
+                i.CFBundleVersion = plist["CFBundleVersion"].ToString();
+                i.MinimumOSVersion = plist["MinimumOSVersion"].ToString();
+                File.Move(i.path, i.path.Replace(i.fileName, $"{plist["CFBundleIdentifier"]}-{plist["CFBundleVersion"]}-(iOS_{plist["MinimumOSVersion"]}).ipa"));
+                i.path = i.path.Replace(i.fileName, $"{plist["CFBundleIdentifier"]}-{plist["CFBundleVersion"]}-(iOS_{plist["MinimumOSVersion"]}).ipa");
+                i.fileName = $"{plist["CFBundleIdentifier"]}-{plist["CFBundleVersion"]}-(iOS_{plist["MinimumOSVersion"]}).ipa";
             }
+            Directory.Delete(".\\sortertemp", true);
         }
 
-        // step 5???
+        // step 3???
         static void Sort()
         {
 
         }
 
-        // misc functions
+        // keeping this around just in case
         static string CalculateMD5(string fileName)
         {
             using (var md5 = MD5.Create())
@@ -98,26 +88,6 @@ namespace IPASorter
                 {
                     var hash = md5.ComputeHash(stream);
                     return BitConverter.ToString(hash).Replace("-", "").ToLowerInvariant();
-                }
-            }
-        }
-
-        static void NewFilesEnumerater()
-        {
-            foreach (IPAFile i in files)
-            {
-                Console.WriteLine($"checking against {i.path} ({i.md5sum})");
-                foreach (IPAFile j in files)
-                {
-                    //Console.WriteLine($"checking {j.path} ({j.md5sum})");
-                    if (i.md5sum == j.md5sum && i.path != j.path)
-                    {
-                        Console.WriteLine("sound the alarms! these are the same file!!!!!!");
-                        files.Remove(j);
-                        File.Delete(j.path);
-                        NewFilesEnumerater();
-                        break;
-                    }
                 }
             }
         }

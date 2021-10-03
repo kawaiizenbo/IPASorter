@@ -9,5 +9,8 @@ namespace IPASorter
         public string path { get; set; }
         public string md5sum { get; set; }
         public string fileName { get; set; }
+        public string CFBundleIdentifier { get; set; }
+        public string CFBundleVersion { get; set; }
+        public string MinimumOSVersion { get; set; }
     }
 }
