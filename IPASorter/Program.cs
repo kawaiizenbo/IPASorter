@@ -19,14 +19,14 @@ namespace IPASorter
         static void Main(string[] args)
         {
             Console.WriteLine("IPASorter by KawaiiZenbo");
-            if(Directory.Exists(".\\sortertemp"))
+            if(Directory.Exists("./sortertemp"))
             {
-                Directory.Delete(".\\sortertemp", true);
+                Directory.Delete("./sortertemp", true);
             }
 
             // parse filepath if given
-            string argsFilePath = args.Length != 0 ? args[0] : ".\\";
-            if (!argsFilePath.EndsWith("/") || !argsFilePath.EndsWith("\\")) argsFilePath += "/";
+            string argsFilePath = args.Length != 0 ? args[0] : "./";
+            if (!argsFilePath.EndsWith("/") || !argsFilePath.EndsWith("/")) argsFilePath += "/";
 
             // run steps
             FileScanner(argsFilePath);
@@ -48,7 +48,7 @@ namespace IPASorter
             {
                 files.Add(new IPAFile
                 {
-                    fileName = s.Split('/')[s.Split('/').Length -1].Split('\\')[s.Split('/')[s.Split('/').Length - 1].Split('\\').Length - 1],
+                    fileName = s.Split('/')[s.Split('/').Length -1].Split('/')[s.Split('/')[s.Split('/').Length - 1].Split('/').Length - 1],
                     path = s,
                     md5sum = CalculateMD5(s)
                 }) ;
@@ -58,19 +58,19 @@ namespace IPASorter
         // step 2
         static void InfoPlistRenamer()
         {
-            Directory.CreateDirectory(".\\sortertemp");
+            Directory.CreateDirectory("./sortertemp");
             foreach (IPAFile i in files)
             {
                 Console.WriteLine($"fixing name of {i.fileName}");
 
                 // extract ipa
-                Directory.CreateDirectory($".\\sortertemp\\{i.fileName}");
-                ZipFile.ExtractToDirectory(i.path, $".\\sortertemp\\{i.fileName}");
-                string appPath = $".\\sortertemp\\{i.fileName}\\Payload\\{Directory.GetDirectories($".\\sortertemp\\{i.fileName}\\Payload\\")[0].Split('\\')[Directory.GetDirectories($".\\sortertemp\\{i.fileName}\\Payload\\")[0].Split('\\').Length - 1]}";
+                Directory.CreateDirectory($"./sortertemp/{i.fileName}");
+                ZipFile.ExtractToDirectory(i.path, $"./sortertemp/{i.fileName}");
+                string appPath = $"./sortertemp/{i.fileName}/Payload/{Directory.GetDirectories($"./sortertemp/{i.fileName}/Payload/")[0].Split('/')[Directory.GetDirectories($"./sortertemp/{i.fileName}/Payload/")[0].Split('/').Length - 1]}";
 
                 // parse plist
-                Dictionary<string, object> plist = (Dictionary<string, object>)Plist.readPlist(appPath + "\\Info.plist");
-                Directory.Delete($".\\sortertemp\\{i.fileName}", true);
+                Dictionary<string, object> plist = (Dictionary<string, object>)Plist.readPlist(appPath + "/Info.plist");
+                Directory.Delete($"./sortertemp/{i.fileName}", true);
                 i.CFBundleIdentifier = plist["CFBundleIdentifier"].ToString();
                 i.CFBundleVersion = plist["CFBundleVersion"].ToString();
                 i.MinimumOSVersion = plist["MinimumOSVersion"].ToString();
@@ -81,7 +81,7 @@ namespace IPASorter
                 i.path = i.path.Replace(i.fileName, newFileName);
                 i.fileName = newFileName;
             }
-            Directory.Delete(".\\sortertemp", true);
+            Directory.Delete("./sortertemp", true);
         }
 
         // optional step 3
