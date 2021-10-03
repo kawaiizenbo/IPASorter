@@ -7,7 +7,7 @@
 
   <ItemGroup>
     <Reference Include="PlistCS">
-      <HintPath>..\..\..\..\Documents\GitHub\fork\PlistCS\PlistCS\bin\Release\netcoreapp3.1\PlistCS.dll</HintPath>
+      <HintPath>PlistCS.dll</HintPath>
     </Reference>
   </ItemGroup>
 
