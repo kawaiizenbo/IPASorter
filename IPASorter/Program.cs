@@ -68,7 +68,18 @@ namespace IPASorter
 
                 // extract ipa
                 Directory.CreateDirectory($"./sortertemp/{i.fileName}");
-                ZipFile.ExtractToDirectory(i.path, $"./sortertemp/{i.fileName}");
+                try
+                {
+                    ZipFile.ExtractToDirectory(i.path, $"./sortertemp/{i.fileName}");
+                }
+                catch (Exception)
+                {
+                    Console.WriteLine($"{i.fileName} is damaged. moving to the broken directory...");
+                    File.Move(i.path, $"{path}/incomplete/{i.fileName.Replace(".ipa", $"-{i.md5sum}.ipa")}", true);
+                    i.path = $"{path}/incomplete/{i.fileName.Replace(".ipa", $"-{i.md5sum}.ipa")}";
+                    i.MinimumOSVersion = "DO NOT ENUMERATE";
+                    continue;
+                }
                 // parse plist
                 Dictionary<string, object> plist = new Dictionary<string, object>();
                 try
@@ -81,6 +92,7 @@ namespace IPASorter
                     Console.WriteLine($"{i.fileName} has a missing/damaged Info.plist. moving to the broken directory...");
                     File.Move(i.path, $"{path}/incomplete/{i.fileName.Replace(".ipa", $"-{i.md5sum}.ipa")}", true);
                     i.path = $"{path}/incomplete/{i.fileName.Replace(".ipa", $"-{i.md5sum}.ipa")}";
+                    i.MinimumOSVersion = "DO NOT ENUMERATE";
                     continue;
                 }
                 Directory.Delete($"./sortertemp/{i.fileName}", true);
@@ -124,7 +136,7 @@ namespace IPASorter
 
             foreach(IPAFile i in files)
             {
-                if (i.path == "DO NOT ENUMERATE") continue;
+                if (i.MinimumOSVersion == "DO NOT ENUMERATE") continue;
                 Directory.CreateDirectory($"{path}/iOS{i.MinimumOSVersion.Split('.')[0]}/{i.CFBundleIdentifier}");
                 File.Move(i.path, $"{path}/iOS{i.MinimumOSVersion.Split('.')[0]}/{i.CFBundleIdentifier}/{i.fileName}", true);
                 i.path = $"{path}/iOS{i.MinimumOSVersion.Split('.')[0]}/{i.CFBundleIdentifier}/{i.fileName}";
