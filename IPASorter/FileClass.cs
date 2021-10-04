@@ -12,5 +12,11 @@ namespace IPASorter
         public string CFBundleIdentifier { get; set; }
         public string CFBundleVersion { get; set; }
         public string MinimumOSVersion { get; set; }
+        public string CFBundleDisplayName { get; set; }
+    }
+
+    public class AppList
+    {
+        public IPAFile[] apps { get; set; }
     }
 }
