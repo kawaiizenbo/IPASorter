@@ -120,12 +120,7 @@ namespace IPASorter
                     {
                         i.CFBundleDisplayName = i.CFBundleIdentifier.Split('.')[2];
                     }
-                    string whichToUse = "CFBundleVersion";
-                    if (plist["CFBundleVersion"].ToString() == "1")
-                    {
-                        whichToUse = "CFBundleShortVersionString";
-                    }
-                    i.CFBundleVersion = plist[whichToUse].ToString();
+                    i.CFBundleVersion = plist["CFBundleVersion"].ToString();
                     try
                     {
                         i.MinimumOSVersion = plist["MinimumOSVersion"].ToString();
