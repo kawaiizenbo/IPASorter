@@ -142,7 +142,8 @@ namespace IPASorter
                     File.Move(i.path, $"{path}/incomplete/{i.fileName.Replace(".ipa", $"-{i.md5sum}.ipa")}", true);
                     i.path = $"{path}/incomplete/{i.fileName.Replace(".ipa", $"-{i.md5sum}.ipa")}";
                     i.MinimumOSVersion = "DO NOT ENUMERATE";
-                    Directory.Delete($"./sortertemp/{i.fileName}", true);
+                    try { Directory.Delete($"./sortertemp/{i.fileName}", true); }
+                    catch { }                    
                     continue;
                 }
             }
