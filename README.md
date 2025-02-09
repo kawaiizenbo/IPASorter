@@ -1,4 +1,5 @@
 # IPASorter  
+## This repo has moved. https://git.kawaiizenbo.me/kawaiizenbo/IPASorter
 Cross platform sorter for iOS app packages (IPAs)  
 
 ## Command line arguments  
